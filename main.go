@@ -32,6 +32,11 @@ type Message struct {
 	Status  string `json:"status"`
 }
 
+type getMessage struct {
+	UserId string `json:"userId"`
+	Id     string `json:"id"`
+}
+
 func addMessageToRoom(rdb *redis.Client, roomID string, message Message) error {
 	jsonMessage, err := json.Marshal(message)
 	if err != nil {
@@ -101,9 +106,9 @@ func main() {
 		server.BroadcastToRoom("/", id, "notice", "You successfully registered.")
 	})
 
-	server.OnEvent("/", "getMesages", func(s socketio.Conn, id string) {
-		messages, _ := getMessagesFromRoom(rdb, id)
-		server.BroadcastToRoom("/", id, "prevMessages", messages)
+	server.OnEvent("/", "getMesages", func(s socketio.Conn, arg getMessage) {
+		messages, _ := getMessagesFromRoom(rdb, arg.Id)
+		server.BroadcastToRoom("/", arg.UserId, "prevMessages", messages)
 	})
 
 	server.OnEvent("/", "message", func(s socketio.Conn, msg Message) {
